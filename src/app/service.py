@@ -14,7 +14,7 @@ load_dotenv()
 # Configuration
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 MONGODB_URI = os.getenv('MONGODB_URIS')
-DB_NAME = os.getenv('DATABASE_NAME') or 'travel_planner'
+DB_NAME = os.getenv('DATABASE_NAME') or 'travelliko'
 GPT_MODEL = "gpt-4o-mini"  
 COLLECTION_NAME = os.getenv('COLLECTION') or 'chat_sessions'
 USE_OPENAI = bool(OPENAI_API_KEY)
