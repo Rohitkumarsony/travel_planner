@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Travel Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      color: #2d3748;
+      overflow-x: hidden;
+      height: 100vh;
+      margin: 0;
+      background: #f7fafc;
+    }
+
+    .sidebar {
+      background: #ffffff;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+      height: 100vh;
+      padding: 1.5rem;
+      position: fixed;
+      width: 270px;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-hidden {
+      transform: translateX(-100%);
+    }
+
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 50;
+      background: #3b82f6;
+      color: #ffffff;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .timeline-step {
+      background: #f1f5f9;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      transition: transform 0.3s, background 0.3s;
+      cursor: pointer;
+    }
+
+    .timeline-step:hover {
+      transform: translateX(5px);
+      background: #e6f0fa;
+    }
+
+    .timeline-step i {
+      margin-right: 0.75rem;
+      color: #3b82f6;
+      transition: transform 0.3s;
+    }
+
+    .timeline-step:hover i {
+      transform: scale(1.2);
+    }
+
+    .main-area {
+      margin-left: 270px;
+      padding: 2rem;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #f7fafc 0%, #e6f0fa 100%);
+      transition: margin-left 0.3s ease;
+    }
+
+    .chat-area {
+      margin-left: 270px;
+      padding: 2rem;
+      height: calc(100vh - 4rem);
+      overflow-y: auto;
+      display: none;
+      background: #ffffff;
+      transition: margin-left 0.3s ease, opacity 0.5s ease;
+      opacity: 0;
+    }
+
+    .chat-area.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .chat-bubble {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      padding: 1rem 1.5rem;
+      border-radius: 1rem;
+      max-width: 600px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      transition: transform 0.3s;
+    }
+
+    .chat-bubble:hover {
+      transform: translateY(-2px);
+    }
+
+    .chat-bubble::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 1rem;
+      padding: 2px;
+      background: linear-gradient(135deg, #60a5fa, #3b82f6);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+
+    .chat-bubble svg {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin-right: 1rem;
+    }
+
+    .chat-bubble.user {
+      background: #e6f0fa;
+      margin-left: auto;
+      margin-right: 1rem;
+      flex-direction: row-reverse;
+    }
+
+    .chat-bubble.user::before {
+      background: linear-gradient(135deg, #93c5fd, #60a5fa);
+    }
+
+    .chat-bubble.user svg {
+      margin-left: 1rem;
+      margin-right: 0;
+    }
+
+    .message-bar {
+      position: fixed;
+      bottom: 0;
+      left: 270px;
+      right: 0;
+      background: #ffffff;
+      border-top: 1px solid #d1d5db;
+      padding: 1rem;
+      display: none;
+      align-items: center;
+      transition: left 0.3s ease;
+    }
+
+    .message-bar.active {
+      display: flex;
+    }
+
+    .message-bar input {
+      flex: 1;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 2rem;
+      outline: none;
+      font-size: 0.9rem;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .message-bar button {
+      background: #3b82f6;
+      color: #ffffff;
+      padding: 0.75rem;
+      border-radius: 50%;
+      margin-left: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      height: 50px;
+      width: 50px;
+    }
+
+    .message-bar button:hover {
+      background: #2563eb;
+      transform: scale(1.1);
+    }
+
+    .get-started-btn {
+      background: #3b82f6;
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 2rem;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .get-started-btn:hover {
+      background: #2563eb;
+      transform: scale(1.05);
+    }
+
+    .airplane-icon {
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    /* Enhanced styles for the itinerary */
+    #itinerary-markdown {
+      line-height: 1.6;
+    }
+    
+    #itinerary-markdown h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      color: #1e40af;
+    }
+    
+    #itinerary-markdown h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: #2563eb;
+    }
+    
+    #itinerary-markdown h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      color: #3b82f6;
+    }
+    
+    #itinerary-markdown strong {
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+    
+    #itinerary-markdown em {
+      font-style: italic;
+      color: #4b5563;
+    }
+    
+    #itinerary-markdown ul, #itinerary-markdown ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    #itinerary-markdown ul li, #itinerary-markdown ol li {
+      margin-bottom: 0.5rem;
+    }
+    
+    #itinerary-markdown a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    
+    #itinerary-markdown a:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    
+    #itinerary-markdown hr {
+      margin: 1.5rem 0;
+      border: none;
+      border-top: 1px solid #d1d5db;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 0.5;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 270px;
+        transform: translateX(-100%);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .hamburger {
+        display: block;
+      }
+
+      .main-area,
+      .chat-area {
+        margin-left: 0;
+      }
+
+      .chat-area.active {
+        margin-left: 0;
+      }
+
+      .message-bar {
+        left: 0;
+      }
+
+      .message-bar.active {
+        left: 0;
+      }
+
+      .main-area h1 {
+        font-size: 1.5rem;
+        padding: 0 1rem;
+      }
+
+      .chat-bubble {
+        max-width: 100%;
+        padding: 0.75rem 1rem;
+      }
+
+      .chat-bubble p {
+        width: 85%;
+      }
+
+      .message-bar input {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-area h1 {
+        font-size: 1.25rem;
+      }
+
+      .get-started-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+      }
+
+      .chat-bubble svg {
+        width: 2rem;
+        height: 2rem;
+      }
+
+      .chat-bubble p {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- menu icon for mobile screen -->
+  <button class="hamburger" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h1 class="text-xl font-bold text-blue-600 mb-6">AI Travel Planner</h1>
+    <div class="flex flex-col">
+      <div class="timeline-step">
+        <i class="fas fa-info-circle"></i>
+        <span class="text-sm font-semibold">General Information</span>
+      </div>
+      <div class="timeline-step">
+        <i class="fas fa-sliders-h"></i>
+        <span class="text-sm font-semibold">Preferences</span>
+      </div>
+      <div class="timeline-step">
+        <i class="fas fa-magic"></i>
+        <span class="text-sm font-semibold">Generation</span>
+      </div>
+      
+      <!-- New Chat button moved here -->
+      <button id="new-chat-btn" class="mt-4 w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:opacity-50" disabled> 
+        New Chat
+      </button>
+    </div>
+    <!-- Session ID display hidden -->
+    <div style="display: none;" class="mt-6 pt-4 border-t border-gray-200">
+      <p class="text-xs text-gray-500">Session ID: <span id="session-id">Not connected</span></p>
+    </div>
+  </div>
+
+  <!-- main area -->
+  <div class="main-area" id="welcome-section">
+    <svg class="mb-6 opacity-50 airplane-icon" width="150" height="100" viewBox="0 0 24 24" fill="none" stroke="#2d3748"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 2L11 13"></path>
+      <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+    </svg>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 text-center">
+      Effortlessly Plan Your Dream Trip With AI Trip Planner
+    </h1>
+    <button class="get-started-btn flex items-center" onclick="showChat()">
+      Get Started <i class="fas fa-plane ml-2"></i>
+    </button>
+  </div>
+
+  <!-- chat area -->
+  <div class="chat-area" id="chat-section">
+    <div id="chat-messages" class="h-[80vh] overflow-y-auto px-4 space-y-4">
+      <!-- Messages will be appended here -->
+    </div>
+    <!-- Typing indicator -->
+    <div id="typing-indicator" class="hidden flex items-center p-2 mb-2">
+      <div class="bg-gray-200 p-2 rounded-xl">
+        <div class="flex space-x-1">
+          <div class="bg-gray-500 rounded-full w-2 h-2 animate-bounce"></div>
+          <div class="bg-gray-500 rounded-full w-2 h-2 animate-bounce" style="animation-delay: 0.2s"></div>
+          <div class="bg-gray-500 rounded-full w-2 h-2 animate-bounce" style="animation-delay: 0.4s"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Itinerary container -->
+    <div id="itinerary-container" class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 hidden">
+      <h3 class="text-lg font-bold text-blue-700 mb-2">Your Travel Itinerary</h3>
+      <div id="itinerary-content" class="prose max-w-none"></div>
+    </div>
+  </div>
+
+  <!-- msg bar -->
+  <div class="message-bar" id="message-bar">
+    <input type="text" placeholder="Message to AI Travel Planner" id="message-input"
+      onkeypress="if(event.key === 'Enter') sendMessage()" class="disabled:opacity-50" />
+    <button id="send-button" onclick="sendMessage()" class="disabled:opacity-50">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+
+  <!-- Info panel (completely hidden) -->
+  <div id="info-panel" class="hidden fixed right-0 top-0 h-full w-64 bg-white shadow-lg p-4 overflow-y-auto">
+    <h3 style="display: none;" class="text-lg font-bold text-blue-600 mb-4">Trip Information</h3>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Destination</p>
+      <p id="destination-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Departure</p>
+      <p id="departure-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Travel Period</p>
+      <p id="travel-period-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">People</p>
+      <p id="people-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Budget</p>
+      <p id="budget-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Accommodation</p>
+      <p id="accommodation-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Food</p>
+      <p id="food-value" class="text-sm font-medium">Not specified</p>
+    </div>
+
+    <div style="display: none;" class="mb-2">
+      <p class="text-xs text-gray-500">Activities</p>
+      <p id="activities-value" class="text-sm font-medium">Not specified</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+  // DOM elements
+  const chatMessages = document.getElementById("chat-messages");
+  const messageInput = document.getElementById("message-input");
+  const sendButton = document.getElementById("send-button");
+  const typingIndicator = document.getElementById("typing-indicator");
+  const itineraryContainer = document.getElementById("itinerary-container");
+  const itineraryContent = document.getElementById("itinerary-content");
+  const newChatButton = document.getElementById("new-chat-btn");
+
+  let ws;
+  let sessionId = null;
+  let currentAssistantMessage = "";
+  let currentItinerary = "";
+  let isCreatingNewSession = false; // Track if we're creating a new session
+
+  // Function to force close WebSocket connection
+  function forceCloseWebSocket() {
+    if (ws) {
+      try {
+        ws.close(1000, "Creating new session");
+      } catch (error) {
+        console.log("Error closing WebSocket:", error);
+      }
+      ws = null;
+    }
+  }
+
+  // Function to create a new session
+  async function createNewSession() {
+    try {
+      // Prevent multiple simultaneous session creations
+      if (isCreatingNewSession) {
+        console.log("Session creation already in progress");
+        return false;
+      }
+      
+      isCreatingNewSession = true;
+      newChatButton.disabled = true;
+      
+      // Force close existing WebSocket connection immediately
+      forceCloseWebSocket();
+      
+      // Clear session state
+      sessionId = null;
+      currentAssistantMessage = "";
+      currentItinerary = "";
+
+      const response = await fetch("/Travelliko/sessions", {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create session");
+      }
+
+      const data = await response.json();
+      sessionId = data.session_id;
+
+      // Display session ID (hidden)
+      document.getElementById("session-id").textContent = sessionId;
+
+      // Clear chat messages immediately
+      chatMessages.innerHTML = "";
+
+      // Reset info panel
+      resetInfoPanel();
+
+      // Hide itinerary container
+      itineraryContainer.classList.add("hidden");
+
+      // Connect WebSocket with new session
+      connectWebSocket();
+
+      return true;
+    } catch (error) {
+      console.error("Error creating session:", error);
+      alert("Failed to create a new chat session");
+      // Re-enable button on error
+      newChatButton.disabled = false;
+      isCreatingNewSession = false;
+      return false;
+    }
+  }
+
+  // Function to connect to WebSocket
+  function connectWebSocket() {
+    if (!sessionId) {
+      console.error("No session ID available for WebSocket connection");
+      return;
+    }
+
+    // Create new WebSocket connection
+    ws = new WebSocket(`ws://${window.location.host}/Travelliko/ws/${sessionId}`);
+
+    ws.onopen = function () {
+      console.log("WebSocket connected for session:", sessionId);
+      messageInput.disabled = false;
+      sendButton.disabled = false;
+      isCreatingNewSession = false; // Reset flag when connection is established
+    };
+
+    ws.onmessage = function (event) {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("Received:", data);
+
+        switch (data.type) {
+          case "message":
+            if (data.data.message && data.data.message.role === "user") {
+              addMessageToChat("user", data.data.message.content);
+            }
+            break;
+
+          case "typing":
+            if (data.data.status) {
+              typingIndicator.classList.remove("hidden");
+              sendButton.disabled = true;
+            } else {
+              typingIndicator.classList.add("hidden");
+              sendButton.disabled = false;
+            }
+            break;
+
+          case "stream_chunk":
+            if (data.data.content) {
+              if (currentAssistantMessage === "") {
+                currentAssistantMessage = data.data.content;
+                const messageDiv = document.createElement("div");
+                messageDiv.id = "current-assistant-message";
+                messageDiv.className = "chat-bubble relative flex items-start gap-3 p-4 bg-white rounded-lg shadow-md w-full max-w-3xl";
+                messageDiv.innerHTML = `
+                  <svg class="flex-shrink-0 mt-1" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <p id="current-message-text" class="text-gray-800 break-words w-full">
+                    ${currentAssistantMessage}
+                  </p>
+                `;
+                chatMessages.appendChild(messageDiv);
+              } else {
+                currentAssistantMessage += data.data.content;
+                const messageTextElement = document.getElementById("current-message-text");
+                if (messageTextElement) {
+                  messageTextElement.textContent = currentAssistantMessage;
+                }
+              }
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            break;
+
+          case "message_complete":
+            if (document.getElementById("current-assistant-message")) {
+              document.getElementById("current-assistant-message").id = "";
+              document.getElementById("current-message-text").id = "";
+            }
+            typingIndicator.classList.add("hidden");
+            currentAssistantMessage = "";
+            
+            // Enable new chat button after message is complete
+            newChatButton.disabled = false;
+            sendButton.disabled = false;
+            break;
+
+          case "itinerary_status":
+            if (data.data.status === "generating") {
+              itineraryContainer.classList.remove("hidden");
+              itineraryContent.innerHTML = "<p>Generating your personalized itinerary...</p>";
+              currentItinerary = "";
+              itineraryContent.scrollIntoView({ behavior: "smooth", block: "end" });
+              sendButton.disabled = false;
+            }
+            break;
+
+          case "itinerary_chunk":
+            if (data.data.content) {
+              currentItinerary += data.data.content;
+              itineraryContent.innerHTML = `<div id="itinerary-markdown">${markdownToHtml(currentItinerary)}</div>`;
+              itineraryContent.scrollIntoView({ behavior: "smooth", block: "end" });
+            }
+            break;
+
+          case "itinerary_complete":
+            itineraryContent.innerHTML = `<div id="itinerary-markdown">${markdownToHtml(data.data.itinerary)}</div>`;
+            itineraryContent.scrollIntoView({ behavior: "smooth", block: "end" });
+            break;
+
+          case "error":
+            console.error("Error:", data.data.message);
+            alert("Error: " + data.data.message);
+            // Re-enable button on error
+            newChatButton.disabled = false;
+            isCreatingNewSession = false;
+            break;
+        }
+      } catch (error) {
+        console.error("Error processing WebSocket message:", error);
+      }
+    };
+
+    ws.onclose = function (event) {
+      console.log("WebSocket closed for session:", sessionId, "Code:", event.code, "Reason:", event.reason);
+      messageInput.disabled = true;
+      sendButton.disabled = true;
+      
+      // Only re-enable new chat button if we're not creating a new session
+      if (!isCreatingNewSession) {
+        newChatButton.disabled = false;
+      }
+    };
+
+    ws.onerror = function (error) {
+      console.error("WebSocket error:", error);
+      messageInput.disabled = true;
+      sendButton.disabled = true;
+      
+      // Only re-enable new chat button if we're not creating a new session
+      if (!isCreatingNewSession) {
+        newChatButton.disabled = false;
+      }
+    };
+  }
+
+  // Toggle sidebar
+  window.toggleSidebar = function () {
+    document.getElementById("sidebar").classList.toggle("active");
+  };
+
+  // Get Started button
+  window.showChat = async function () {
+    document.getElementById("welcome-section").style.display = "none";
+    await createNewSession();
+    document.getElementById("chat-section").classList.add("active");
+    document.getElementById("message-bar").classList.add("active");
+    messageInput.focus();
+  };
+
+  // Reset info panel
+  function resetInfoPanel() {
+    const fields = ["destination", "departure", "travel-period", "people", "budget", "accommodation", "food", "activities"];
+    fields.forEach(field => {
+      document.getElementById(`${field}-value`).textContent = "Not specified";
+    });
+  }
+
+  // Send message
+  window.sendMessage = function () {
+    const message = messageInput.value.trim();
+    if (message && ws && ws.readyState === WebSocket.OPEN && !isCreatingNewSession) {
+      ws.send(JSON.stringify({ type: "message", content: message }));
+      messageInput.value = "";
+    }
+  };
+
+  // Add message to chat
+  function addMessageToChat(role, content) {
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `chat-bubble ${role === "user" ? "user" : ""} relative`;
+    messageDiv.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <p class="text-gray-800 w-[85%]">${content}</p>
+    `;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    messageDiv.scrollIntoView({ behavior: "smooth", block: "end" });
+  }
+
+  // Markdown to HTML
+  function markdownToHtml(markdown) {
+    if (!markdown) return "";
+    return markdown
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+      .replace(/\n$/gim, '<br />');
+  }
+
+  // New Chat button click
+  newChatButton.addEventListener("click", async function () {
+    // Prevent multiple clicks during session creation
+    if (isCreatingNewSession) {
+      console.log("Session creation already in progress, ignoring click");
+      return;
+    }
+    
+    console.log("Creating new chat session...");
+    
+    if (await createNewSession()) {
+      itineraryContainer.classList.add("hidden");
+      currentItinerary = "";
+      document.getElementById("welcome-section").style.display = "none";
+      document.getElementById("chat-section").classList.add("active");
+      document.getElementById("message-bar").classList.add("active");
+      messageInput.focus();
+    }
+  });
+
+  // INITIALIZE: Always start with the welcome page
+  function initializeApp() {
+    // Don't restore anything - just show welcome page
+    document.getElementById("welcome-section").style.display = "flex";
+    document.getElementById("chat-section").classList.remove("active");
+    document.getElementById("message-bar").classList.remove("active");
+  }
+
+  initializeApp();
+});
+
+  </script>
+</body>
+
+</html>

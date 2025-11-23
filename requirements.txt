@@ -1,0 +1,7 @@
+openai==0.28.0
+fastapi
+fastapi[all]
+uvicorn
+python-dotenv
+# fastapi-websockets
+pymongo
