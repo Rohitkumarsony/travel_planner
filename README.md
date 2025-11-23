@@ -1,4 +1,4 @@
-# Travel Planner – AI Travel Assistant
+# Travelliko – AI Travel Assistant
 
 Travelliko Bot is a conversational AI assistant designed to help users plan safe, exciting, and highly personalised international trips. It collects essential trip details via a friendly and persistent chat experience and builds a complete travel itinerary based on the user’s inputs.
 
